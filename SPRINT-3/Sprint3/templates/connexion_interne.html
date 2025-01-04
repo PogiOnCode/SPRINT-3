@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion Interne - Keycloak</title>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='connexion_interne.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/keycloak-js/18.0.0/keycloak.min.js"></script>
+</head>
+<body>
+    <div class="signin">
+        <div class="content">
+            <h2>Connexion via Keycloak</h2>
+            <div id="login-message"></div>
+            <div class="inputBox">
+                <button id="login-button">Se connecter</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration de Keycloak.js
+        const keycloak = new Keycloak({
+            url: "http://localhost:8080/auth", // URL de votre instance Keycloak
+            realm: "WebApp",                  // Nom du Realm
+            clientId: "HTML-Form"             // Nom du client
+        });
+
+        // Gestion de la connexion
+        document.getElementById('login-button').addEventListener('click', () => {
+            keycloak.init({ onLoad: 'login-required' }).then(authenticated => {
+                if (authenticated) {
+                    // Sauvegarde du token JWT
+                    sessionStorage.setItem('kcToken', keycloak.token);
+                    document.getElementById('login-message').innerText = "Connexion réussie, redirection...";
+                    window.location.href = "/accueil_interne"; // Redirection après connexion
+                } else {
+                    document.getElementById('login-message').innerText = "Connexion échouée.";
+                }
+            }).catch(err => {
+                console.error("Erreur Keycloak : ", err);
+                document.getElementById('login-message').innerText = "Erreur de connexion.";
+            });
+        });
+    </script>
+</body>
+</html>
