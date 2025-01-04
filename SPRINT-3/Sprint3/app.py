@@ -64,10 +64,9 @@ app.config['MAIL_PASSWORD'] = os.getenv("MAIL_PASSWORD")  # Chargé depuis .env
 app.config['MAIL_DEFAULT_SENDER'] = os.getenv("MAIL_USERNAME")
 
 # Keycloak
-app.config['KEYCLOAK_SERVER_URL'] = 'http://localhost:8080/auth'
+app.config['KEYCLOAK_SERVER_URL'] = 'http://localhost:8082/'
 app.config['KEYCLOAK_REALM'] = 'WebApp'
 app.config['KEYCLOAK_CLIENT_ID'] = 'HTML-Form'
-app.config['KEYCLOAK_CLIENT_SECRET'] = os.getenv('KEYCLOAK_CLIENT_SECRET')  # Si client 'confidential'
 app.config['KEYCLOAK_REDIRECT_URI'] = 'http://localhost:5000/accueil_interne'
 app.config['KEYCLOAK_SCOPE'] = 'openid profile email'
 
