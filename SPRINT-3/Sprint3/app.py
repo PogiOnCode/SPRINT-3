@@ -17,7 +17,11 @@ app = Flask(__name__)
 app.secret_key = os.urandom(24)
 load_dotenv()
 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
+logstash_handler = SocketHandler('192.168.20.20', 5044) # IP et Port a changer en fonction de ELK
+logger.addHandler(logstash_handler)  # Logs envoyés à Logstash
 
 
 # Configuration pour Flask-Mail - plusieurs serveurs SMTP
