@@ -9,6 +9,7 @@ from ldap3 import Server, Connection, ALL, SIMPLE
 from dotenv import load_dotenv
 from logging.handlers import SocketHandler
 from keycloak import KeycloakAdmin
+from keycloak import KeycloakOpenID
 
 
 # Initialisation de l'application Flask
@@ -73,7 +74,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # Initialisation des extensions
 mail = Mail(app)
 db = SQLAlchemy(app)
-keycloak = Keycloak(app)
+keycloak = KeycloakAdmin(app)
 
 # Modèle de la table utilisateur
 class UserAccount(db.Model):
@@ -205,26 +206,37 @@ def connecte():
 
 @app.route("/connexion_interne", methods=["GET", "POST"])
 def connexion_interne():
+    # Vérification de la présence d'un token Keycloak dans la session
     if 'keycloak_token' in session:
         return redirect(url_for('accueil_interne'))
 
+    # Traitement du formulaire en POST
     if request.method == "POST":
         try:
             # Initialisation de Keycloak pour l'authentification
-            keycloak_admin = KeycloakAdmin(server_url=app.config['KEYCLOAK_SERVER_URL'],
-                             username='admin', password='admin_password',
-                             realm_name=app.config['KEYCLOAK_REALM'],
-                             client_id=app.config['KEYCLOAK_CLIENT_ID'], client_secret_key='client_secret')
-	    token = keycloak_admin.token
-            session['keycloak_token'] = token
+            keycloak_admin = KeycloakAdmin(
+                server_url=app.config['KEYCLOAK_SERVER_URL'],
+                username='admin', password='admin',
+                realm_name=app.config['KEYCLOAK_REALM'],
+                client_id=app.config['KEYCLOAK_CLIENT_ID'],
+                client_secret_key='client_secret'
+            )
 
+            # Récupération du token
+            token = keycloak_admin.token
+            session['keycloak_token'] = token  # Stockage du token dans la session
             logger.info("Connexion réussie avec Keycloak.")
+
+            # Redirection vers l'accueil interne après une connexion réussie
             return redirect(url_for("accueil_interne"))
+
         except Exception as e:
+            # Gestion des erreurs d'authentification
             logger.error("Erreur lors de l'authentification Keycloak : %s", str(e))
             flash("Erreur d'authentification, réessayez.", "error")
             return redirect(url_for('connexion_interne'))
 
+    # Affichage du formulaire de connexion si la méthode est GET
     return render_template("connexion_interne.html")
 
 # Route pour l'accueil interne

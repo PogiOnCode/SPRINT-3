@@ -9,13 +9,34 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/keycloak-js/18.0.0/keycloak.min.js"></script>
 </head>
 <body>
-    <div class="signin">
+     <div class="signin">
         <div class="content">
-            <h2>Connexion via Keycloak</h2>
-            <div id="login-message"></div>
-            <div class="inputBox">
-                <button id="login-button">Se connecter</button>
-            </div>
+            <h2>Connexion</h2>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+       
+            <form method="POST" action="{{ url_for('connexion_interne') }}" class="form">
+                <div class="inputBox">
+                    <label for="username" class="visually-hidden">Nom d'utilisateur :</label>
+                    <input type="text" id="username" name="username" placeholder="Nom d'utilisateur" required>
+                </div>
+
+                <div class="inputBox">
+                    <label for="password" class="visually-hidden">Mot de passe :</label>
+                    <input type="password" id="password" name="password" placeholder="Mot de passe" required>
+                </div>
+
+                <div class="inputBox">
+                    <input type="submit" value="Se connecter">
+                </div>
+            </form>
         </div>
     </div>
 
