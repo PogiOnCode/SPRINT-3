@@ -8,19 +8,14 @@ import random
 from ldap3 import Server, Connection, ALL, SIMPLE
 from dotenv import load_dotenv
 from logging.handlers import SocketHandler
-from keycloak import KeycloakOpenID
-from keycloak_flask import Keycloak
+from keycloak import KeycloakAdmin
+
 
 # Initialisation de l'application Flask
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 load_dotenv()
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-
-logstash_handler = SocketHandler('192.168.20.20', 5044)
-logger.addHandler(logstash_handler)  # Logs envoyés à Logstash
 
 
 
@@ -64,10 +59,9 @@ app.config['MAIL_PASSWORD'] = os.getenv("MAIL_PASSWORD")  # Chargé depuis .env
 app.config['MAIL_DEFAULT_SENDER'] = os.getenv("MAIL_USERNAME")
 
 # Keycloak
-app.config['KEYCLOAK_SERVER_URL'] = 'http://localhost:8080/auth'
+app.config['KEYCLOAK_SERVER_URL'] = 'http://localhost:8082/'
 app.config['KEYCLOAK_REALM'] = 'WebApp'
 app.config['KEYCLOAK_CLIENT_ID'] = 'HTML-Form'
-app.config['KEYCLOAK_CLIENT_SECRET'] = os.getenv('KEYCLOAK_CLIENT_SECRET')  # Si client 'confidential'
 app.config['KEYCLOAK_REDIRECT_URI'] = 'http://localhost:5000/accueil_interne'
 app.config['KEYCLOAK_SCOPE'] = 'openid profile email'
 
@@ -217,9 +211,13 @@ def connexion_interne():
     if request.method == "POST":
         try:
             # Initialisation de Keycloak pour l'authentification
-            keycloak.openid_authenticate()
-            token = keycloak.token
+            keycloak_admin = KeycloakAdmin(server_url=app.config['KEYCLOAK_SERVER_URL'],
+                             username='admin', password='admin_password',
+                             realm_name=app.config['KEYCLOAK_REALM'],
+                             client_id=app.config['KEYCLOAK_CLIENT_ID'], client_secret_key='client_secret')
+	    token = keycloak_admin.token
             session['keycloak_token'] = token
+
             logger.info("Connexion réussie avec Keycloak.")
             return redirect(url_for("accueil_interne"))
         except Exception as e:
@@ -237,13 +235,14 @@ def accueil_interne():
 
     token = session['keycloak_token']
     # Valider le token JWT via Keycloak
-    if keycloak.token_valid(token):
-        user_info = keycloak.userinfo(token)
+    if keycloak_admin.token_valid(token):
+        user_info = keycloak_admin.userinfo(token)
         logger.info(f"Utilisateur connecté : {user_info['preferred_username']}")
         return render_template("accueil_interne.html", user=user_info)
     else:
         logger.warning("Token invalide, redirection vers la page de connexion.")
         return redirect(url_for('connexion_interne'))
+
 
 # Route pour la déconnexion
 @app.route("/deconnexion", methods=["GET", "POST"])

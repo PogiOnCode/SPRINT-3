@@ -6,11 +6,12 @@
     <title>Page d'accueil interne</title>
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{url_for('static', filename='accueil_interne.css')}}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/keycloak-js/18.0.0/keycloak.min.js"></script>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>Bienvenue, {{ user }} sur la plateforme interne</h1>
+            <h1 id="welcome-message">Bienvenue sur la plateforme interne</h1>
             <p>Accédez à vos outils et informations essentielles.</p>
         </div>
         <div class="card">
@@ -50,9 +51,36 @@
                 </div>
             </div>
         </div>
-        <form method="POST" action="{{ url_for('deconnexion') }}">
-            <button type="submit" class="button secondary">Déconnexion</button>
-        </form>
+        <button id="logout-button" class="button secondary">Déconnexion</button>
     </div>
+
+    <script>
+        const keycloak = new Keycloak({
+            url: "http://localhost:8080/auth",
+            realm: "WebApp",
+            clientId: "HTML-Form"
+        });
+
+        keycloak.init({ onLoad: 'check-sso' }).then(authenticated => {
+            if (authenticated) {
+                const token = keycloak.tokenParsed;
+                document.getElementById('welcome-message').innerText = `Bienvenue, ${token.given_name} sur la plateforme interne`;
+            } else {
+                window.location.href = "/connexion_interne";
+            }
+        }).catch(err => {
+            console.error("Erreur Keycloak : ", err);
+            window.location.href = "/connexion_interne";
+        });
+
+        document.getElementById('logout-button').addEventListener('click', () => {
+            keycloak.logout().then(() => {
+                sessionStorage.clear();
+                window.location.href = "/connexion_interne";
+            });
+        });
+    </script>
 </body>
 </html>
+
+

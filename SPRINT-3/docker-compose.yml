@@ -51,33 +51,6 @@ services:
     networks:
       - my-network  # Added to the same network as mysql and openldap
 
-  wireguard:
-    image: linuxserver/wireguard
-    container_name: wireguard
-    cap_add:
-      - NET_ADMIN
-      - SYS_MODULE
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Europe/Paris
-      - SERVERURL=auto
-      - SERVERPORT=51820
-      - PEERS=1
-      - PEERDNS=10.13.13.100
-      - INTERNAL_SUBNET=10.13.13.0
-    volumes:
-      - ./config/wireguard:/config
-      - /lib/modules:/lib/modules
-    ports:
-      - 51820:51820/udp
-    sysctls:
-      - net.ipv4.conf.all.src_valid_mark=1
-    restart: always
-    networks:
-      wireguard-net:
-        ipv4_address: 10.13.13.100
-
   openldap:
     image: osixia/openldap:latest
     container_name: openldap

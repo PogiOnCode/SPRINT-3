@@ -20,21 +20,20 @@
     </div>
 
     <script>
-        // Configuration de Keycloak.js
         const keycloak = new Keycloak({
-            url: "http://localhost:8080/auth", // URL de votre instance Keycloak
-            realm: "WebApp",                  // Nom du Realm
-            clientId: "HTML-Form"             // Nom du client
+            url: "http://localhost:8080/auth",
+            realm: "WebApp",
+            clientId: "HTML-Form"
         });
 
-        // Gestion de la connexion
         document.getElementById('login-button').addEventListener('click', () => {
             keycloak.init({ onLoad: 'login-required' }).then(authenticated => {
                 if (authenticated) {
-                    // Sauvegarde du token JWT
+                    // Sauvegarder les tokens
                     sessionStorage.setItem('kcToken', keycloak.token);
+                    sessionStorage.setItem('kcRefreshToken', keycloak.refreshToken);
                     document.getElementById('login-message').innerText = "Connexion réussie, redirection...";
-                    window.location.href = "/accueil_interne"; // Redirection après connexion
+                    window.location.href = "/accueil_interne"; // Redirection
                 } else {
                     document.getElementById('login-message').innerText = "Connexion échouée.";
                 }
@@ -46,3 +45,5 @@
     </script>
 </body>
 </html>
+
+
